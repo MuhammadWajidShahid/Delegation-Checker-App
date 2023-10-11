@@ -3,6 +3,10 @@ import { useMemo } from "react";
 
 import type { User } from "~/models/user.server";
 
+
+import type { Keplr, Window as KeplrWindow } from '@keplr-wallet/types';
+
+
 const DEFAULT_REDIRECT = "/";
 
 /**
@@ -69,3 +73,44 @@ export function useUser(): User {
 export function validateEmail(email: unknown): email is string {
   return typeof email === "string" && email.length > 3 && email.includes("@");
 }
+
+
+export const getKeplrFromExtension: () => Promise<
+  Keplr | undefined
+> = async () => {
+  if (typeof window === 'undefined') {
+    return void 0;
+  }
+
+  const keplr = (window as KeplrWindow).keplr;
+
+  if (keplr) {
+    return keplr;
+  }
+
+  if (document.readyState === 'complete') {
+    if (keplr) {
+      return keplr;
+    } else {
+      throw Error("Keplr not exists");
+    }
+  }
+
+  return new Promise((resolve, reject) => {
+    const documentStateChange = (event: Event) => {
+      if (
+        event.target &&
+        (event.target as Document).readyState === 'complete'
+      ) {
+        if (keplr) {
+          resolve(keplr);
+        } else {
+          reject(Error("Keplr not exists"));
+        }
+        document.removeEventListener('readystatechange', documentStateChange);
+      }
+    };
+
+    document.addEventListener('readystatechange', documentStateChange);
+  });
+};

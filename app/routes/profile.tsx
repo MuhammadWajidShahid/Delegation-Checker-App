@@ -1,9 +1,14 @@
 import { Form } from "@remix-run/react";
+import ConnectButton from "~/components/connectButton.client";
 import Header from "~/components/header";
 import { useUser } from "~/utils";
+import { ClientOnly } from "~/utils/client-only";
+
+
 
 export default function Profile() {
     const user = useUser()
+
     return (
         <div className="flex h-full min-h-screen flex-col">
             <Header />
@@ -90,9 +95,13 @@ export default function Profile() {
                                 ) : null} */}
                                 </div>
                             </div>
-                            <button type="button" className="rounded bg-blue-500 px-4 py-2 text-blue-100 hover:bg-blue-600 active:bg-blue-600"> Link Kelpr</button>
                         </div>
                     </Form>
+                    <ClientOnly fallback={<p>Loading...</p>}>
+                        {() => <ConnectButton />}
+                    </ClientOnly>
+
+                    {/* <button onClick={() => connectchain()} type="button" className="rounded bg-blue-500 px-4 py-2 text-blue-100 hover:bg-blue-600 active:bg-blue-600"> Link Kelpr</button> */}
                 </div>
             </main>
         </div>
