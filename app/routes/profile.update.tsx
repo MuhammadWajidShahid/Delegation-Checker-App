@@ -27,17 +27,19 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         );
     }
 
+    // Convert public key from hex to Buffer
     const enPubkey = Buffer.from(pubKey, "hex");
 
+    // verify if signature is valid
     if (verifyADR36Amino(prefix, signer, data, enPubkey, Buffer.from(signature as string, "base64"))) {
         try {
-
+            // Signature is valid update the user's cosmos address
             await updateUserCosmosAddress(userId, signer)
 
             return json(
                 { success: true, message: "Address added successfully" },
                 { status: 200 },
-            );;
+            );
         }
         catch (error) {
             return json(
