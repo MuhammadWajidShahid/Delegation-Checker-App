@@ -28,6 +28,15 @@ export async function createUser(email: User["email"], password: string) {
   });
 }
 
+export async function updateUserCosmosAddress(userId: User["id"], cosmosAddress: string) {
+  const user = await prisma.user.findUnique({ where: { id: userId } })
+  if (!user?.cosmosAddress) {
+
+    return prisma.user.update({ where: { id: userId }, data: { cosmosAddress } })
+  }
+  throw Error('Cosmos address already linked');
+}
+
 export async function deleteUserByEmail(email: User["email"]) {
   return prisma.user.delete({ where: { email } });
 }

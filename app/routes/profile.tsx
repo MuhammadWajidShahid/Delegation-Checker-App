@@ -1,13 +1,45 @@
-import { Form } from "@remix-run/react";
-import ConnectButton from "~/components/connectButton.client";
+import { Form, useFetcher } from "@remix-run/react";
 import Header from "~/components/header";
-import { useUser } from "~/utils";
-import { ClientOnly } from "~/utils/client-only";
+import { chainName, message } from "~/constants";
+import { getKeplrFromExtension, useUser } from "~/utils";
 
 
 
 export default function Profile() {
     const user = useUser()
+    const fetcher = useFetcher()
+
+    async function connectchain() {
+        try {
+            const client = await getKeplrFromExtension()
+            if (!client) throw Error("Couldn't get client")
+
+            await client.enable(chainName)
+
+            const keyData = await client.getKey(chainName)
+
+            const signature = await client.signArbitrary(chainName, keyData.bech32Address, message)
+
+            const hexenc = Buffer.from(keyData.pubKey).toString("hex");
+
+            fetcher.submit({
+                chain: chainName,
+                signer: keyData.bech32Address,
+                data: message,
+                pubKey: hexenc,
+                signature: signature.signature
+            },
+                {
+                    action: "/profile/update",
+                    method: "post",
+                    encType: "application/x-www-form-urlencoded",
+                    preventScrollReset: false,
+                });
+        }
+        catch (error) {
+            console.error("conecting error", error);
+        }
+    }
 
     return (
         <div className="flex h-full min-h-screen flex-col">
@@ -25,7 +57,6 @@ export default function Profile() {
                             <div className="mt-1">
                                 <input
                                     defaultValue={user.email}
-                                    // ref={emailRef}
                                     disabled
                                     id="email"
                                     required
@@ -33,75 +64,40 @@ export default function Profile() {
                                     name="email"
                                     type="email"
                                     autoComplete="email"
-                                    // aria-invalid={actionData?.errors?.email ? true : undefined}
                                     aria-describedby="email-error"
                                     className="w-full rounded border border-gray-500 px-2 py-1 text-lg cursor-not-allowed opacity-50 select-none"
                                 />
-                                {/* {actionData?.errors?.email ? (
-                                    <div className="pt-1 text-red-700" id="email-error">
-                                        {actionData.errors.email}
-                                    </div>
-                                ) : null} */}
                             </div>
                         </div>
-                        <div>
-                            <label
-                                htmlFor="password"
-                                className="block text-sm font-medium text-gray-700"
-                            >
-                                Password
-                            </label>
-                            <div className="mt-1">
-                                <input
-                                    id="password"
-                                    // ref={passwordRef}
-                                    name="password"
-                                    type="password"
-                                    autoComplete="new-password"
-                                    // aria-invalid={actionData?.errors?.password ? true : undefined}
-                                    aria-describedby="password-error"
-                                    className="w-full rounded border border-gray-500 px-2 py-1 text-lg"
-                                />
-                                {/* {actionData?.errors?.password ? (
-                                    <div className="pt-1 text-red-700" id="password-error">
-                                        {actionData.errors.password}
-                                    </div>
-                                ) : null} */}
-                            </div>
-                        </div>
+
                         <div className="flex items-end justify-between gap-2">
                             <div className="grow">
                                 <label
-                                    htmlFor="password"
+                                    htmlFor="cosmosAddress"
                                     className="block text-sm font-medium text-gray-700"
                                 >
                                     Kepler Address
                                 </label>
                                 <div className="mt-1">
                                     <input
+                                        defaultValue={user.cosmosAddress ?? ""}
                                         disabled
-                                        id="keplerAddress"
-                                        // ref={passwordRef}
-                                        name="keplerAddress"
+                                        id="cosmosAddress"
+                                        name="cosmosAddress"
                                         type="text"
-                                        // aria-invalid={actionData?.errors?.password ? true : undefined}
-                                        // aria-describedby="password-error"
                                         className="w-full rounded border border-gray-500 px-2 py-1 text-lg cursor-not-allowed opacity-50"
                                     />
-                                    {/* {actionData?.errors?.password ? (
-                                    <div className="pt-1 text-red-700" id="password-error">
-                                        {actionData.errors.password}
-                                    </div>
-                                ) : null} */}
+
                                 </div>
                             </div>
+                            {
+                                !user.cosmosAddress &&
+                                <button onClick={() => connectchain()} type="button" className="rounded bg-blue-500 px-4 py-2 text-blue-100 hover:bg-blue-600 active:bg-blue-600"> Link Kelpr</button>
+                            }
                         </div>
                     </Form>
-                    <ClientOnly fallback={<p>Loading...</p>}>
-                        {() => <ConnectButton />}
-                    </ClientOnly>
 
-                    {/* <button onClick={() => connectchain()} type="button" className="rounded bg-blue-500 px-4 py-2 text-blue-100 hover:bg-blue-600 active:bg-blue-600"> Link Kelpr</button> */}
+
                 </div>
             </main>
         </div>
