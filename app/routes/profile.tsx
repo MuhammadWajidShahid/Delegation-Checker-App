@@ -45,7 +45,7 @@ export default function Profile() {
         <div className="flex h-full min-h-screen flex-col">
             <Header />
             <main className="flex h-full bg-white">
-                <div className="mx-auto w-full max-w-md px-8 mt-10">
+                <div className="mx-auto w-full max-w-md px-8 mt-36">
                     <Form method="post" className="space-y-6">
                         <div>
                             <label
