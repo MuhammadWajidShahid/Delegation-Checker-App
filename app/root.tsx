@@ -8,6 +8,7 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigation,
 } from "@remix-run/react";
 
 import { getUser } from "~/session.server";
@@ -23,6 +24,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 };
 
 export default function App() {
+  const navigation = useNavigation()
   return (
     <html lang="en" className="h-full">
       <head>
@@ -32,6 +34,10 @@ export default function App() {
         <Links />
       </head>
       <body className="h-full">
+        {navigation.state === "loading" && <div className="fixed inset-0 z-40 opacity-25 flex justify-center items-center">
+          <div className=" flex justify-center items-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-900"></div>
+          </div></div>}
         <Outlet />
         <ScrollRestoration />
         <Scripts />
