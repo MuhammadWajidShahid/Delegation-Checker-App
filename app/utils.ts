@@ -6,6 +6,10 @@ import type { User } from "~/models/user.server";
 
 import type { Keplr, Window as KeplrWindow } from '@keplr-wallet/types';
 
+import type { StakingExtension } from "@cosmjs/stargate";
+import { QueryClient, setupStakingExtension } from "@cosmjs/stargate"
+import { Tendermint34Client } from "@cosmjs/tendermint-rpc";
+
 
 const DEFAULT_REDIRECT = "/";
 
@@ -114,3 +118,11 @@ export const getKeplrFromExtension: () => Promise<
     document.addEventListener('readystatechange', documentStateChange);
   });
 };
+
+
+export async function makeClientWithStaking(
+  rpcUrl: string,
+): Promise<[QueryClient & StakingExtension, Tendermint34Client]> {
+  const tmClient = await Tendermint34Client.connect(rpcUrl);
+  return [QueryClient.withExtensions(tmClient, setupStakingExtension), tmClient];
+}
